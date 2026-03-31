@@ -26,6 +26,25 @@ public class AES {
             0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
     };
 
+    private static final int[] INVSBOX = {
+            0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
+            0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
+            0x54, 0x7b, 0x94, 0x32, 0xa6, 0xc2, 0x23, 0x3d, 0xee, 0x4c, 0x95, 0x0b, 0x42, 0xfa, 0xc3, 0x4e,
+            0x08, 0x2e, 0xa1, 0x66, 0x28, 0xd9, 0x24, 0xb2, 0x76, 0x5b, 0xa2, 0x49, 0x6d, 0x8b, 0xd1, 0x25,
+            0x72, 0xf8, 0xf6, 0x64, 0x86, 0x68, 0x98, 0x16, 0xd4, 0xa4, 0x5c, 0xcc, 0x5d, 0x65, 0xb6, 0x92,
+            0x6c, 0x70, 0x48, 0x50, 0xfd, 0xed, 0xb9, 0xda, 0x5e, 0x15, 0x46, 0x57, 0xa7, 0x8d, 0x9d, 0x84,
+            0x90, 0xd8, 0xab, 0x00, 0x8c, 0xbc, 0xd3, 0x0a, 0xf7, 0xe4, 0x58, 0x05, 0xb8, 0xb3, 0x45, 0x06,
+            0xd0, 0x2c, 0x1e, 0x8f, 0xca, 0x3f, 0x0f, 0x02, 0xc1, 0xaf, 0xbd, 0x03, 0x01, 0x13, 0x8a, 0x6b,
+            0x3a, 0x91, 0x11, 0x41, 0x4f, 0x67, 0xdc, 0xea, 0x97, 0xf2, 0xcf, 0xce, 0xf0, 0xb4, 0xe6, 0x73,
+            0x96, 0xac, 0x74, 0x22, 0xe7, 0xad, 0x35, 0x85, 0xe2, 0xf9, 0x37, 0xe8, 0x1c, 0x75, 0xdf, 0x6e,
+            0x47, 0xf1, 0x1a, 0x71, 0x1d, 0x29, 0xc5, 0x89, 0x6f, 0xb7, 0x62, 0x0e, 0xaa, 0x18, 0xbe, 0x1b,
+            0xfc, 0x56, 0x3e, 0x4b, 0xc6, 0xd2, 0x79, 0x20, 0x9a, 0xdb, 0xc0, 0xfe, 0x78, 0xcd, 0x5a, 0xf4,
+            0x1f, 0xdd, 0xa8, 0x33, 0x88, 0x07, 0xc7, 0x31, 0xb1, 0x12, 0x10, 0x59, 0x27, 0x80, 0xec, 0x5f,
+            0x60, 0x51, 0x7f, 0xa9, 0x19, 0xb5, 0x4a, 0x0d, 0x2d, 0xe5, 0x7a, 0x9f, 0x93, 0xc9, 0x9c, 0xef,
+            0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
+            0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d
+    };
+
     private static byte[] rotWord(byte[] word) {
         byte[] w = word.clone();
         w[0] = word[1];
@@ -58,8 +77,36 @@ public class AES {
         return (byte) result;
     }
 
+    private static byte mult9(byte b) {
+        byte b2 = galoisMult2(b);
+        byte b4 = galoisMult2(b2);
+        byte b8 = galoisMult2(b4);
+        return (byte) (b8 ^ b);
+    }
+
+    private static byte mult11(byte b) {
+        byte b2 = galoisMult2(b);
+        byte b4 = galoisMult2(b2);
+        byte b8 = galoisMult2(b4);
+        return (byte) (b8 ^ b2 ^ b);
+    }
+
+    private static byte mult13(byte b) {
+        byte b2 = galoisMult2(b);
+        byte b4 = galoisMult2(b2);
+        byte b8 = galoisMult2(b4);
+        return (byte) (b8 ^ b4 ^ b);
+    }
+
+    private static byte mult14(byte b) {
+        byte b2 = galoisMult2(b);
+        byte b4 = galoisMult2(b2);
+        byte b8 = galoisMult2(b4);
+        return (byte) (b8 ^ b4 ^ b2);
+    }
+
     private static byte[][] SubBytes(byte[][] matrix) {
-        byte[][] m = matrix.clone();
+        byte[][] m = new byte[4][4];
 
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
@@ -70,8 +117,25 @@ public class AES {
         return m;
     }
 
+    private static byte[][] InvSubBytes(byte[][] matrix) {
+        byte[][] m = new byte[4][4];
+
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                m[i][j] = (byte) INVSBOX[matrix[i][j] & 0xFF];
+            }
+        }
+
+        return m;
+    }
+
     private static byte[][] ShiftRows(byte[][] matrix) {
-        byte[][] m = matrix.clone();
+        byte[][] m = new byte[4][4];
+
+        m[0][0] = matrix[0][0];
+        m[0][1] = matrix[0][1];
+        m[0][2] = matrix[0][2];
+        m[0][3] = matrix[0][3];
 
         m[1][0] = matrix[1][1];
         m[1][1] = matrix[1][2];
@@ -87,6 +151,32 @@ public class AES {
         m[3][1] = matrix[3][0];
         m[3][2] = matrix[3][1];
         m[3][3] = matrix[3][2];
+
+        return m;
+    }
+
+    private static byte[][] InvShiftRows(byte[][] matrix) {
+        byte[][] m = new byte[4][4];
+
+        m[0][0] = matrix[0][0];
+        m[0][1] = matrix[0][1];
+        m[0][2] = matrix[0][2];
+        m[0][3] = matrix[0][3];
+
+        m[1][0] = matrix[1][3];
+        m[1][1] = matrix[1][0];
+        m[1][2] = matrix[1][1];
+        m[1][3] = matrix[1][2];
+
+        m[2][0] = matrix[2][2];
+        m[2][1] = matrix[2][3];
+        m[2][2] = matrix[2][0];
+        m[2][3] = matrix[2][1];
+
+        m[3][0] = matrix[3][1];
+        m[3][1] = matrix[3][2];
+        m[3][2] = matrix[3][3];
+        m[3][3] = matrix[3][0];
 
         return m;
     }
@@ -109,16 +199,45 @@ public class AES {
         return result;
     }
 
+    private static byte[][] InvMixColumns(byte[][] matrix) {
+        byte[][] result = new byte[4][4];
+
+        for (int col = 0; col < 4; col++) {
+            byte s0 = matrix[0][col];
+            byte s1 = matrix[1][col];
+            byte s2 = matrix[2][col];
+            byte s3 = matrix[3][col];
+
+            result[0][col] = (byte) (mult14(s0) ^ mult11(s1) ^ mult13(s2) ^ mult9(s3));
+            result[1][col] = (byte) (mult9(s0)  ^ mult14(s1) ^ mult11(s2) ^ mult13(s3));
+            result[2][col] = (byte) (mult13(s0) ^ mult9(s1)  ^ mult14(s2) ^ mult11(s3));
+            result[3][col] = (byte) (mult11(s0) ^ mult13(s1) ^ mult9(s2)  ^ mult14(s3));
+        }
+
+        return result;
+    }
+
     private static String convertToHex(byte b) {
         char hex = (char) (b & 0xFF);
         return Integer.toHexString(hex);
+    }
+
+    private static byte[] hexStringToByteArray(String s) {
+        String cleanString = s.replaceAll("\\s+", "");
+        int len = cleanString.length();
+        byte[] data = new byte[len / 2];
+
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(cleanString.charAt(i), 16) << 4)
+                    + Character.digit(cleanString.charAt(i+1), 16));
+        }
+        return data;
     }
 
     private static void printState(byte[][] state) {
         System.out.println("--------- Macierz State ---------");
         for (int row = 0; row < 4; row++) {
             for (int col = 0; col < 4; col++) {
-                // Zmieniono na format 0x00
                 System.out.printf("0x%02X ", state[row][col] & 0xFF);
             }
             System.out.println();
@@ -216,13 +335,13 @@ public class AES {
         return result;
     }
 
-    public static String AESAlgorithm(String input) {
+    public static String AESEncrypt(String input, String keyInput) {
         StringBuilder sb = new StringBuilder();
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         byte[] paddedInput = addPadding(inputBytes);
         byte[][] State = fillStateMatrix(paddedInput);
 
-        byte[] key_ = "bloodbehindbeach".getBytes();
+        byte[] key_ = keyInput.getBytes();
         byte[][] key = keySchedule128bit(key_);
 
         State = AddRoundKey(State, key, 0);
@@ -244,6 +363,45 @@ public class AES {
             }
         }
         return sb.toString();
+    }
+
+    public static String AESDecrypt(String input, String keyInput) {
+        StringBuilder sb = new StringBuilder();
+        byte[] inputBytes = hexStringToByteArray(input);
+        byte[][] State = fillStateMatrix(inputBytes);
+
+        byte[] key_ = keyInput.getBytes();
+        byte[][] key = keySchedule128bit(key_);
+
+        State = AddRoundKey(State, key, 10);
+
+        for (int i = 9; i >= 1; i--) {
+            State = InvShiftRows(State);
+            State = InvSubBytes(State);
+            State = AddRoundKey(State, key, i);
+            State = InvMixColumns(State);
+        }
+
+        State = InvShiftRows(State);
+        State = InvSubBytes(State);
+        State = AddRoundKey(State, key, 0);
+
+        byte[] decryptedBytes = new byte[16];
+        int index = 0;
+        for (int col = 0; col < 4; col++) {
+            for (int row = 0; row < 4; row++) {
+                decryptedBytes[index++] = State[row][col];
+            }
+        }
+
+        int paddingValue = decryptedBytes[15] & 0xFF;
+
+        int textLength = 16;
+        if (paddingValue > 0 && paddingValue <= 16) {
+            textLength = 16 - paddingValue;
+        }
+
+        return new String(decryptedBytes, 0, textLength, StandardCharsets.UTF_8);
     }
 
     public static void main(String[] args) {

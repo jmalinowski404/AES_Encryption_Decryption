@@ -2,8 +2,10 @@ package pl.krypto;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 
-import static pl.krypto.AES.AESAlgorithm;
+import static pl.krypto.AES.AESDecrypt;
+import static pl.krypto.AES.AESEncrypt;
 
 public class ViewController {
     @FXML
@@ -13,11 +15,25 @@ public class ViewController {
     private TextArea cypherTextOutput;
 
     @FXML
-    protected void onCypherClick() {
-        String plainText = cypherTextInput.getText();
+    private TextField keyInput;
 
-        String result = AESAlgorithm(plainText);
+    @FXML
+    protected void onCypherClick() {
+        String cypherText = cypherTextInput.getText();
+        String key = keyInput.getText();
+
+        String result = AESEncrypt(cypherText, key);
 
         cypherTextOutput.setText(result);
+    }
+
+    @FXML
+    protected void onDecypherClick() {
+        String decypherText = cypherTextOutput.getText();
+        String key = keyInput.getText();
+
+        String result = AESDecrypt(decypherText, key);
+
+        cypherTextInput.setText(result);
     }
 }
