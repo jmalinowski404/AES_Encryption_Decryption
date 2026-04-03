@@ -1,0 +1,4 @@
+--patch-module
+Kryptografia=_
+--add-reads
+Kryptografia=ALL-UNNAMED

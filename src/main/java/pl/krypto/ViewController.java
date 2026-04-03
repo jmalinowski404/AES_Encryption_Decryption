@@ -1,6 +1,7 @@
 package pl.krypto;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
@@ -9,6 +10,7 @@ import java.util.List;
 
 import static pl.krypto.AES.AESDecrypt;
 import static pl.krypto.AES.AESEncrypt;
+import static pl.krypto.KeySchedulers.generateRandomKey;
 
 public class ViewController {
     @FXML
@@ -19,6 +21,43 @@ public class ViewController {
 
     @FXML
     private TextField keyInput;
+
+    @FXML
+    private ChoiceBox<String> keyLengthChoiceBox;
+
+    @FXML
+    protected void initialize() {
+        keyLengthChoiceBox.getItems().addAll("128 bit", "192 bit", "256 bit");
+
+        keyLengthChoiceBox.setValue("128 bit");
+    }
+
+    @FXML
+    protected void onGenerateKey() {
+        String selection = keyLengthChoiceBox.getValue();
+
+        String key;
+
+        switch(selection) {
+            case "128 bit":
+                key = generateRandomKey(16);
+                break;
+
+            case "192 bit":
+                key = generateRandomKey(24);
+                break;
+
+            case "256 bit":
+                key = generateRandomKey(32);
+                break;
+
+            default:
+                key = generateRandomKey(16);
+                break;
+        }
+
+        keyInput.setText(key);
+    }
 
     @FXML
     protected void onCypherClick() {

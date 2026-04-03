@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static pl.krypto.Constants.*;
-import static pl.krypto.KeySchedulers.keySchedule128bit;
+import static pl.krypto.KeySchedulers.*;
 import static pl.krypto.Utils.*;
 
 public class AES {
@@ -168,8 +168,26 @@ public class AES {
         byte[] paddedInput = addPadding(inputBytes);
         byte[][] State = fillStateMatrix(paddedInput);
 
-        byte[] key_ = keyInput.getBytes();
-        byte[][] key = keySchedule128bit(key_);
+//        byte[] key_ = hexStringToByteArray(keyInput);
+        byte[] key_ = java.util.Base64.getDecoder().decode(keyInput);
+        byte[][] key;
+
+        switch(key_.length) {
+            case 16:
+                key = keySchedule128bit(key_);
+                break;
+
+            case 24:
+                key = keySchedule192bit(key_);
+                break;
+
+            case 32:
+                key = keySchedule256bit(key_);
+                break;
+            default:
+                key = keySchedule128bit(key_);
+                break;
+        }
 
         State = AddRoundKey(State, key, 0);
 
@@ -184,21 +202,49 @@ public class AES {
         State = ShiftRows(State);
         State = AddRoundKey(State, key, 10);
 
+//        for (int col = 0; col < 4; col++) {
+//            for (int row = 0; row < 4; row++) {
+//                sb.append(String.format("%02X", State[row][col] & 0xFF));
+//            }
+//        }
+//        return sb.toString();
+
+        byte[] encryptedBlock = new byte[16];
+        int index = 0;
         for (int col = 0; col < 4; col++) {
             for (int row = 0; row < 4; row++) {
-                sb.append(String.format("%02X", State[row][col] & 0xFF));
+                encryptedBlock[index++] = State[row][col];
             }
         }
-        return sb.toString();
+        return java.util.Base64.getEncoder().encodeToString(encryptedBlock);
     }
 
     public static String AESDecrypt(String input, String keyInput) {
         StringBuilder sb = new StringBuilder();
-        byte[] inputBytes = hexStringToByteArray(input);
+//        byte[] inputBytes = hexStringToByteArray(input);
+        byte[] inputBytes = java.util.Base64.getDecoder().decode(input);
         byte[][] State = fillStateMatrix(inputBytes);
 
-        byte[] key_ = keyInput.getBytes();
-        byte[][] key = keySchedule128bit(key_);
+//        byte[] key_ = hexStringToByteArray(keyInput);
+        byte[] key_ = java.util.Base64.getDecoder().decode(keyInput);
+        byte[][] key;
+
+        switch(key_.length) {
+            case 16:
+                key = keySchedule128bit(key_);
+                break;
+
+            case 24:
+                key = keySchedule192bit(key_);
+                break;
+
+            case 32:
+                key = keySchedule256bit(key_);
+                break;
+            default:
+                key = keySchedule128bit(key_);
+                break;
+        }
 
         State = AddRoundKey(State, key, 10);
 
