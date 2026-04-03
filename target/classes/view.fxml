@@ -9,9 +9,9 @@
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.krypto.ViewController">
    <children>
       <Button fx:id="cypherBtn" layoutX="248.0" layoutY="254.0" mnemonicParsing="false" onAction="#onCypherClick" text="Szyfruj" />
-      <TextArea fx:id="cypherTextInput" layoutX="26.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" />
+      <TextArea fx:id="cypherTextInput" wrapText="true" layoutX="26.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" />
       <Label fx:id="TestText" layoutX="26.0" layoutY="23.0" prefHeight="25.0" prefWidth="115.0" text="Klucz" />
-      <TextArea fx:id="cypherTextOutput" layoutX="312.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" />
+      <TextArea fx:id="cypherTextOutput" wrapText="true" layoutX="312.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" />
       <Button fx:id="decypherBtn" layoutX="521.0" layoutY="254.0" mnemonicParsing="false" onAction="#onDecypherClick" text="Deszyfruj" />
       <TextField fx:id="keyInput" layoutX="26.0" layoutY="48.0" />
    </children>
