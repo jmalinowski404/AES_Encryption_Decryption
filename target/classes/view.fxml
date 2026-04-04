@@ -3,16 +3,17 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.krypto.ViewController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="320.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.krypto.ViewController">
    <children>
-      <Button fx:id="cypherBtn" layoutX="248.0" layoutY="254.0" mnemonicParsing="false" onAction="#onCypherClick" text="Szyfruj" />
+      <Button fx:id="cypherBtn" layoutX="170.0" layoutY="253.0" mnemonicParsing="false" onAction="#onCypherClick" prefHeight="40.0" prefWidth="130.0" text="Szyfruj" />
       <TextArea fx:id="cypherTextInput" layoutX="26.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" wrapText="true" />
       <Label fx:id="TestText" layoutX="26.0" layoutY="23.0" prefHeight="25.0" prefWidth="115.0" text="Klucz" />
-      <TextArea fx:id="cypherTextOutput" layoutX="312.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" wrapText="true" />
-      <Button fx:id="decypherBtn" layoutX="521.0" layoutY="254.0" mnemonicParsing="false" onAction="#onDecypherClick" text="Deszyfruj" />
+      <TextArea fx:id="cypherTextOutput" layoutX="404.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" wrapText="true" />
+      <Button fx:id="decypherBtn" layoutX="548.0" layoutY="253.0" mnemonicParsing="false" onAction="#onDecypherClick" prefHeight="40.0" prefWidth="130.0" text="Deszyfruj" />
       <TextField fx:id="keyInput" layoutX="26.0" layoutY="48.0" />
       <Label layoutX="212.0" layoutY="27.0" prefHeight="17.0" prefWidth="106.0" text="Generuj Klucz" />
       <ChoiceBox fx:id="keyLengthChoiceBox" layoutX="212.0" layoutY="48.0" prefWidth="150.0" />
       <Button fx:id="generateKeyBtn" layoutX="375.0" layoutY="48.0" mnemonicParsing="false" onAction="#onGenerateKey" text="Generuj" />
+      <Button fx:id="chooseFileBtn" layoutX="309.0" layoutY="131.0" mnemonicParsing="false" onAction="#onChooseFile" text="Wybierz plik" />
    </children>
 </AnchorPane>

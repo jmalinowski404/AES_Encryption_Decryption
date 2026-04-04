@@ -9,7 +9,7 @@ public class View extends Application{
     @Override
     public void start(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/view.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 800, 800);
+        Scene scene = new Scene(fxmlLoader.load(), 700, 320);
         stage.setTitle("Kryptografia Zadanie 1");
         stage.setScene(scene);
         stage.show();

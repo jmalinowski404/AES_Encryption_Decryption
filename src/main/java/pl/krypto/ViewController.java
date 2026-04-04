@@ -1,10 +1,17 @@
 package pl.krypto;
 
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +33,29 @@ public class ViewController {
     private ChoiceBox<String> keyLengthChoiceBox;
 
     @FXML
+    private Button chooseFileBtn;
+
+    private File selectedFile;
+
+    @FXML
     protected void initialize() {
         keyLengthChoiceBox.getItems().addAll("128 bit", "192 bit", "256 bit");
 
         keyLengthChoiceBox.setValue("128 bit");
+    }
+
+    @FXML
+    protected void onChooseFile() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Wybierz plik do zaszyfrowania/zdeszyfrowania");
+
+        Stage stage = (Stage) chooseFileBtn.getScene().getWindow();
+
+        File file = fileChooser.showOpenDialog(stage);
+
+        if (file != null) {
+            selectedFile = file;
+        }
     }
 
     @FXML
@@ -60,9 +86,19 @@ public class ViewController {
     }
 
     @FXML
-    protected void onCypherClick() {
+    protected void onCypherClick() throws IOException {
         String cypherText = cypherTextInput.getText();
         String key = keyInput.getText();
+
+        if (selectedFile != null) {
+            byte[] fileBytes = new byte[(int) selectedFile.length()];
+
+            try (FileInputStream inputStream = new FileInputStream(selectedFile)) {
+                inputStream.read(fileBytes);
+            }
+
+
+        }
 
         List<String> cypherChunks = new ArrayList<>();
 

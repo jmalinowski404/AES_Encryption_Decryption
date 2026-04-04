@@ -163,7 +163,6 @@ public class AES {
     }
 
     public static String AESEncrypt(String input, String keyInput) {
-        StringBuilder sb = new StringBuilder();
         byte[] inputBytes = input.getBytes(StandardCharsets.UTF_8);
         byte[] paddedInput = addPadding(inputBytes);
         byte[][] State = fillStateMatrix(paddedInput);
@@ -175,32 +174,75 @@ public class AES {
         switch(key_.length) {
             case 16:
                 key = keySchedule128bit(key_);
+
+                State = AddRoundKey(State, key, 0);
+
+                for (int i = 1; i < 10; i++) {
+                    State = SubBytes(State);
+                    State = ShiftRows(State);
+                    State = MixColumns(State);
+                    State = AddRoundKey(State, key, i);
+                }
+
+                State = SubBytes(State);
+                State = ShiftRows(State);
+                State = AddRoundKey(State, key, 10);
+
                 break;
 
             case 24:
                 key = keySchedule192bit(key_);
+
+                State = AddRoundKey(State, key, 0);
+
+                for (int i = 1; i < 12; i++) {
+                    State = SubBytes(State);
+                    State = ShiftRows(State);
+                    State = MixColumns(State);
+                    State = AddRoundKey(State, key, i);
+                }
+
+                State = SubBytes(State);
+                State = ShiftRows(State);
+                State = AddRoundKey(State, key, 12);
+
                 break;
 
             case 32:
                 key = keySchedule256bit(key_);
+
+                State = AddRoundKey(State, key, 0);
+
+                for (int i = 1; i < 14; i++) {
+                    State = SubBytes(State);
+                    State = ShiftRows(State);
+                    State = MixColumns(State);
+                    State = AddRoundKey(State, key, i);
+                }
+
+                State = SubBytes(State);
+                State = ShiftRows(State);
+                State = AddRoundKey(State, key, 14);
+
                 break;
             default:
                 key = keySchedule128bit(key_);
+
+                State = AddRoundKey(State, key, 0);
+
+                for (int i = 1; i < 10; i++) {
+                    State = SubBytes(State);
+                    State = ShiftRows(State);
+                    State = MixColumns(State);
+                    State = AddRoundKey(State, key, i);
+                }
+
+                State = SubBytes(State);
+                State = ShiftRows(State);
+                State = AddRoundKey(State, key, 10);
+
                 break;
         }
-
-        State = AddRoundKey(State, key, 0);
-
-        for (int i = 1; i < 10; i++) {
-            State = SubBytes(State);
-            State = ShiftRows(State);
-            State = MixColumns(State);
-            State = AddRoundKey(State, key, i);
-        }
-
-        State = SubBytes(State);
-        State = ShiftRows(State);
-        State = AddRoundKey(State, key, 10);
 
 //        for (int col = 0; col < 4; col++) {
 //            for (int row = 0; row < 4; row++) {
@@ -232,32 +274,61 @@ public class AES {
         switch(key_.length) {
             case 16:
                 key = keySchedule128bit(key_);
+
+                State = AddRoundKey(State, key, 10);
+
+                for (int i = 9; i >= 1; i--) {
+                    State = InvShiftRows(State);
+                    State = InvSubBytes(State);
+                    State = AddRoundKey(State, key, i);
+                    State = InvMixColumns(State);
+                }
+
+                State = InvShiftRows(State);
+                State = InvSubBytes(State);
+                State = AddRoundKey(State, key, 0);
+
                 break;
 
             case 24:
                 key = keySchedule192bit(key_);
+
+                State = AddRoundKey(State, key, 12);
+
+                for (int i = 11; i >= 1; i--) {
+                    State = InvShiftRows(State);
+                    State = InvSubBytes(State);
+                    State = AddRoundKey(State, key, i);
+                    State = InvMixColumns(State);
+                }
+
+                State = InvShiftRows(State);
+                State = InvSubBytes(State);
+                State = AddRoundKey(State, key, 0);
+
                 break;
 
             case 32:
                 key = keySchedule256bit(key_);
+
+                State = AddRoundKey(State, key, 14);
+
+                for (int i = 13; i >= 1; i--) {
+                    State = InvShiftRows(State);
+                    State = InvSubBytes(State);
+                    State = AddRoundKey(State, key, i);
+                    State = InvMixColumns(State);
+                }
+
+                State = InvShiftRows(State);
+                State = InvSubBytes(State);
+                State = AddRoundKey(State, key, 0);
+
                 break;
             default:
                 key = keySchedule128bit(key_);
                 break;
         }
-
-        State = AddRoundKey(State, key, 10);
-
-        for (int i = 9; i >= 1; i--) {
-            State = InvShiftRows(State);
-            State = InvSubBytes(State);
-            State = AddRoundKey(State, key, i);
-            State = InvMixColumns(State);
-        }
-
-        State = InvShiftRows(State);
-        State = InvSubBytes(State);
-        State = AddRoundKey(State, key, 0);
 
         byte[] decryptedBytes = new byte[16];
         int index = 0;
