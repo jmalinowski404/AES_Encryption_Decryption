@@ -1,19 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
 
-<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="320.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.krypto.ViewController">
+<AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="320.0" prefWidth="700.0" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="pl.krypto.ViewController">
    <children>
       <Button fx:id="cypherBtn" layoutX="170.0" layoutY="253.0" mnemonicParsing="false" onAction="#onCypherClick" prefHeight="40.0" prefWidth="130.0" text="Szyfruj" />
       <TextArea fx:id="cypherTextInput" layoutX="26.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" wrapText="true" />
-      <Label fx:id="TestText" layoutX="26.0" layoutY="23.0" prefHeight="25.0" prefWidth="115.0" text="Klucz" />
+      <Label fx:id="TestText" layoutX="26.0" layoutY="14.0" prefHeight="25.0" prefWidth="115.0" text="Klucz" />
       <TextArea fx:id="cypherTextOutput" layoutX="404.0" layoutY="93.0" prefHeight="153.0" prefWidth="274.0" wrapText="true" />
       <Button fx:id="decypherBtn" layoutX="548.0" layoutY="253.0" mnemonicParsing="false" onAction="#onDecypherClick" prefHeight="40.0" prefWidth="130.0" text="Deszyfruj" />
-      <TextField fx:id="keyInput" layoutX="26.0" layoutY="48.0" />
-      <Label layoutX="212.0" layoutY="27.0" prefHeight="17.0" prefWidth="106.0" text="Generuj Klucz" />
-      <ChoiceBox fx:id="keyLengthChoiceBox" layoutX="212.0" layoutY="48.0" prefWidth="150.0" />
-      <Button fx:id="generateKeyBtn" layoutX="375.0" layoutY="48.0" mnemonicParsing="false" onAction="#onGenerateKey" text="Generuj" />
+      <TextField fx:id="keyInput" layoutX="26.0" layoutY="39.0" />
+      <Label layoutX="212.0" layoutY="18.0" prefHeight="17.0" prefWidth="106.0" text="Generuj Klucz" />
+      <ChoiceBox fx:id="keyLengthChoiceBox" layoutX="212.0" layoutY="39.0" prefWidth="150.0" />
+      <Button fx:id="generateKeyBtn" layoutX="375.0" layoutY="39.0" mnemonicParsing="false" onAction="#onGenerateKey" text="Generuj" />
       <Button fx:id="chooseFileBtn" layoutX="309.0" layoutY="131.0" mnemonicParsing="false" onAction="#onChooseFile" text="Wybierz plik" />
+      <Button fx:id="saveDecypherBtn" layoutX="26.0" layoutY="253.0" mnemonicParsing="false" onAction="#saveDecypher" prefHeight="40.0" prefWidth="106.0" text="Zapisz Deszyfr" />
+      <Button fx:id="saveCypherBtn" layoutX="404.0" layoutY="253.0" mnemonicParsing="false" onAction="#saveCypher" prefHeight="40.0" prefWidth="81.0" text="Zapisz Szyfr" />
+      <Label fx:id="infoLabel" contentDisplay="CENTER" layoutX="252.0" layoutY="70.0" prefHeight="17.0" prefWidth="202.0" textAlignment="CENTER" />
    </children>
 </AnchorPane>

@@ -1,10 +1,7 @@
 package pl.krypto;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
-import javafx.scene.control.TextArea;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -38,6 +35,17 @@ public class ViewController {
     private File selectedFile;
 
     @FXML
+    private Button saveCypherBtn;
+
+    @FXML
+    private Button saveDecypherBtn;
+
+    private byte[] data;
+
+    @FXML
+    private Label infoLabel;
+
+    @FXML
     protected void initialize() {
         keyLengthChoiceBox.getItems().addAll("128 bit", "192 bit", "256 bit");
 
@@ -54,6 +62,7 @@ public class ViewController {
         File file = fileChooser.showOpenDialog(stage);
 
         if (file != null) {
+            infoLabel.setText("Załadowano plik: " + file.getName());
             selectedFile = file;
         }
     }
@@ -116,6 +125,7 @@ public class ViewController {
         }
 
         if (selectedFile != null) {
+            data = null;
             byte[] fileBytes = Files.readAllBytes(selectedFile.toPath());
             byte[] paddedFileBytes = addPadding(fileBytes);
             byte[] encryptedFileBytes = new byte[paddedFileBytes.length];
@@ -130,15 +140,17 @@ public class ViewController {
 
             String finalOutput = Base64.getEncoder().encodeToString(encryptedFileBytes);
 
+            data = encryptedFileBytes;
             cypherTextOutput.setText(finalOutput);
             selectedFile = null;
         } else {
+            data = null;
             String cypherText = cypherTextInput.getText();
             byte[] textBytes = cypherText.getBytes(StandardCharsets.UTF_8);
             byte[] paddedTextBytes = AES.addPadding(textBytes);
             byte[] encryptedTextBytes = new byte[paddedTextBytes.length];
 
-            for (int i = 0; i < cypherText.length(); i += 16) {
+            for (int i = 0; i < paddedTextBytes.length; i += 16) {
                 byte[] chunk = new byte[16];
                 System.arraycopy(paddedTextBytes, i, chunk, 0, 16);
 
@@ -146,13 +158,14 @@ public class ViewController {
                 System.arraycopy(encryptedChunk, 0, encryptedTextBytes, i, 16);
             }
 
+            data = encryptedTextBytes;
             String finalOutput = Base64.getEncoder().encodeToString(encryptedTextBytes);
             cypherTextOutput.setText(finalOutput);
         }
     }
 
     @FXML
-    protected void onDecypherClick() {
+    protected void onDecypherClick() throws IOException {
         String decypherText = cypherTextOutput.getText();
 
         String key = keyInput.getText();
@@ -182,32 +195,85 @@ public class ViewController {
                 break;
         }
 
-        byte[] encryptedBytes = Base64.getDecoder().decode(decypherText);
-        byte[] decryptedBytes = new byte[encryptedBytes.length];
+        if (selectedFile != null) {
+            data = null;
+            byte[] encryptedFileBytes = Files.readAllBytes(selectedFile.toPath());
+            byte[] decryptedFileBytes = new byte[encryptedFileBytes.length];
 
-        for (int i = 0; i < encryptedBytes.length; i += 16) {
-            byte[] chunk = new byte[16];
-            System.arraycopy(encryptedBytes, i, chunk, 0, 16);
+            for (int i = 0; i < encryptedFileBytes.length; i += 16) {
+                byte[] chunk = new byte[16];
+                System.arraycopy(encryptedFileBytes, i, chunk, 0, 16);
 
-            byte[] decryptedChunk = AESDecrypt(chunk, keySchedule, rounds);
-            System.arraycopy(decryptedChunk, 0, decryptedBytes, i, 16);
+                byte[] decryptedChunk = AESDecrypt(chunk, keySchedule, rounds);
+                System.arraycopy(decryptedChunk, 0, decryptedFileBytes, i, 16);
+            }
+
+            int paddingValue = decryptedFileBytes[decryptedFileBytes.length - 1] & 0xFF;
+            int length = decryptedFileBytes.length;
+
+            if (paddingValue > 0 && paddingValue <= 16) {
+                length -= paddingValue;
+            }
+
+            cypherTextInput.setText(new String(decryptedFileBytes, 0, length, StandardCharsets.UTF_8));
+            data = Arrays.copyOfRange(decryptedFileBytes, 0, length);
+            selectedFile = null;
+        } else {
+            data = null;
+            byte[] encryptedTextBytes = Base64.getDecoder().decode(decypherText);
+            byte[] decryptedTextBytes = new byte[encryptedTextBytes.length];
+
+            for (int i = 0; i < encryptedTextBytes.length; i += 16) {
+                byte[] chunk = new byte[16];
+                System.arraycopy(encryptedTextBytes, i, chunk, 0, 16);
+
+                byte[] decryptedChunk = AESDecrypt(chunk, keySchedule, rounds);
+                System.arraycopy(decryptedChunk, 0, decryptedTextBytes, i, 16);
+            }
+
+            int paddingValue = decryptedTextBytes[decryptedTextBytes.length - 1] & 0xFF;
+            int textLength = decryptedTextBytes.length;
+
+            if (paddingValue > 0 && paddingValue <= 16) {
+                textLength -= paddingValue;
+            }
+
+            data = decryptedTextBytes;
+            cypherTextInput.setText(new String(decryptedTextBytes, 0, textLength, StandardCharsets.UTF_8));
         }
-
-        int paddingValue = decryptedBytes[decryptedBytes.length - 1] & 0xFF;
-        int textLength = decryptedBytes.length;
-
-        if (paddingValue > 0 && paddingValue <= 16) {
-            textLength -= paddingValue;
-        }
-
-        cypherTextInput.setText(new String(decryptedBytes, 0, textLength, StandardCharsets.UTF_8));
     }
 
-    protected void saveFileToDisk(byte[] data) throws IOException {
-        FileOutputStream fos = new FileOutputStream("decryption_result.bin");
+    @FXML
+    protected void saveCypher() {
+        saveFileToDisk(data, "encryption", saveCypherBtn);
+    }
 
-        fos.write(data);
-        fos.flush();
-        fos.close();
+    @FXML
+    protected void saveDecypher() {
+        saveFileToDisk(data, "decryption", saveDecypherBtn);
+    }
+
+    protected void saveFileToDisk(byte[] data, String suggestedFileName, Button button) {
+        FileChooser fileChoose = new FileChooser();
+        fileChoose.setTitle("Zapisz plik jako...");
+
+        fileChoose.setInitialFileName(suggestedFileName);
+
+        fileChoose.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Pliki zaszyfrowane (*.enc)", "*.enc"),
+                new FileChooser.ExtensionFilter("Wszystkie pliki", "*.*")
+        );
+
+        Stage stage = (Stage) button.getScene().getWindow();
+
+        File savedFile = fileChoose.showSaveDialog(stage);
+
+        if (savedFile != null) {
+            try {
+                Files.write(savedFile.toPath(), data);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 }
