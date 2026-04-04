@@ -8,18 +8,16 @@ import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 
-import static pl.krypto.AES.AESDecrypt;
-import static pl.krypto.AES.AESEncrypt;
-import static pl.krypto.KeySchedulers.generateRandomKey;
+import static pl.krypto.AES.*;
+import static pl.krypto.KeySchedulers.*;
 
 public class ViewController {
     @FXML
@@ -89,67 +87,127 @@ public class ViewController {
 
     @FXML
     protected void onCypherClick() throws IOException {
-        String cypherText = cypherTextInput.getText();
         String key = keyInput.getText();
+
+        byte[] key_ = java.util.Base64.getDecoder().decode(key);
+        byte[][] keySchedule;
+        int rounds;
+
+        switch(key_.length) {
+            case 16:
+                keySchedule = keySchedule128bit(key_);
+                rounds = 10;
+                break;
+
+            case 24:
+                keySchedule = keySchedule192bit(key_);
+                rounds = 12;
+                break;
+
+            case 32:
+                keySchedule = keySchedule256bit(key_);
+                rounds = 14;
+                break;
+
+            default:
+                keySchedule = keySchedule128bit(key_);
+                rounds = 10;
+                break;
+        }
 
         if (selectedFile != null) {
             byte[] fileBytes = Files.readAllBytes(selectedFile.toPath());
-            List<byte[]> fileChunks = new ArrayList<>();
+            byte[] paddedFileBytes = addPadding(fileBytes);
+            byte[] encryptedFileBytes = new byte[paddedFileBytes.length];
 
-            for (int i = 0; i < fileBytes.length; i += 16) {
-                int limit = Math.min(i + 16, fileBytes.length);
+            for (int i = 0; i < paddedFileBytes.length; i += 16) {
+                byte[] chunk = new byte[16];
+                System.arraycopy(paddedFileBytes, i, chunk, 0, 16);
 
-                byte[] chunk = Arrays.copyOfRange(fileBytes, i, limit);
-                fileChunks.add(chunk);
+                byte[] encryptedChunk = AESEncrypt(chunk, keySchedule, rounds);
+                System.arraycopy(encryptedChunk, 0, encryptedFileBytes, i, 16);
             }
 
-            StringBuilder fileCypherString = new StringBuilder();
+            String finalOutput = Base64.getEncoder().encodeToString(encryptedFileBytes);
 
-            for (byte[] b : fileChunks) {
-                fileCypherString.append(AESEncrypt(b, key));
-            }
-
-            cypherTextOutput.setText(fileCypherString.toString());
+            cypherTextOutput.setText(finalOutput);
+            selectedFile = null;
         } else {
-            List<String> cypherChunks = new ArrayList<>();
+            String cypherText = cypherTextInput.getText();
+            byte[] textBytes = cypherText.getBytes(StandardCharsets.UTF_8);
+            byte[] paddedTextBytes = AES.addPadding(textBytes);
+            byte[] encryptedTextBytes = new byte[paddedTextBytes.length];
 
             for (int i = 0; i < cypherText.length(); i += 16) {
-                int limit = Math.min(i + 16, cypherText.length());
+                byte[] chunk = new byte[16];
+                System.arraycopy(paddedTextBytes, i, chunk, 0, 16);
 
-                String chunk = cypherText.substring(i, limit);
-                cypherChunks.add(chunk);
+                byte[] encryptedChunk = AESEncrypt(chunk, keySchedule, rounds);
+                System.arraycopy(encryptedChunk, 0, encryptedTextBytes, i, 16);
             }
 
-            StringBuilder sb1 = new StringBuilder();
-
-            for (String s : cypherChunks) {
-                sb1.append(AESEncrypt(s, key));
-            }
-
-            cypherTextOutput.setText(sb1.toString());
+            String finalOutput = Base64.getEncoder().encodeToString(encryptedTextBytes);
+            cypherTextOutput.setText(finalOutput);
         }
     }
 
     @FXML
     protected void onDecypherClick() {
         String decypherText = cypherTextOutput.getText();
+
         String key = keyInput.getText();
+        byte[] key_ = java.util.Base64.getDecoder().decode(key);
+        byte[][] keySchedule;
+        int rounds;
 
-        List<String> decypherChunks = new ArrayList<>();
+        switch(key_.length) {
+            case 16:
+                keySchedule = keySchedule128bit(key_);
+                rounds = 10;
+                break;
 
-        for (int i = 0; i < decypherText.length(); i += 32) {
-            int limit = Math.min(i + 32, decypherText.length());
+            case 24:
+                keySchedule = keySchedule192bit(key_);
+                rounds = 12;
+                break;
 
-            String chunk = decypherText.substring(i, limit);
-            decypherChunks.add(chunk);
+            case 32:
+                keySchedule = keySchedule256bit(key_);
+                rounds = 14;
+                break;
+
+            default:
+                keySchedule = keySchedule128bit(key_);
+                rounds = 10;
+                break;
         }
 
-        StringBuilder sb1 = new StringBuilder();
+        byte[] encryptedBytes = Base64.getDecoder().decode(decypherText);
+        byte[] decryptedBytes = new byte[encryptedBytes.length];
 
-        for (String s : decypherChunks) {
-            sb1.append(AESDecrypt(s, key));
+        for (int i = 0; i < encryptedBytes.length; i += 16) {
+            byte[] chunk = new byte[16];
+            System.arraycopy(encryptedBytes, i, chunk, 0, 16);
+
+            byte[] decryptedChunk = AESDecrypt(chunk, keySchedule, rounds);
+            System.arraycopy(decryptedChunk, 0, decryptedBytes, i, 16);
         }
 
-        cypherTextInput.setText(sb1.toString());
+        int paddingValue = decryptedBytes[decryptedBytes.length - 1] & 0xFF;
+        int textLength = decryptedBytes.length;
+
+        if (paddingValue > 0 && paddingValue <= 16) {
+            textLength -= paddingValue;
+        }
+
+        cypherTextInput.setText(new String(decryptedBytes, 0, textLength, StandardCharsets.UTF_8));
+    }
+
+    protected void saveFileToDisk(byte[] data) throws IOException {
+        FileOutputStream fos = new FileOutputStream("decryption_result.bin");
+
+        fos.write(data);
+        fos.flush();
+        fos.close();
     }
 }
