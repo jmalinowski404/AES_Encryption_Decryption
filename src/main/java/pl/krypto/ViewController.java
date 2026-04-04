@@ -12,7 +12,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static pl.krypto.AES.AESDecrypt;
@@ -91,31 +93,41 @@ public class ViewController {
         String key = keyInput.getText();
 
         if (selectedFile != null) {
-            byte[] fileBytes = new byte[(int) selectedFile.length()];
+            byte[] fileBytes = Files.readAllBytes(selectedFile.toPath());
+            List<byte[]> fileChunks = new ArrayList<>();
 
-            try (FileInputStream inputStream = new FileInputStream(selectedFile)) {
-                inputStream.read(fileBytes);
+            for (int i = 0; i < fileBytes.length; i += 16) {
+                int limit = Math.min(i + 16, fileBytes.length);
+
+                byte[] chunk = Arrays.copyOfRange(fileBytes, i, limit);
+                fileChunks.add(chunk);
             }
 
+            StringBuilder fileCypherString = new StringBuilder();
 
+            for (byte[] b : fileChunks) {
+                fileCypherString.append(AESEncrypt(b, key));
+            }
+
+            cypherTextOutput.setText(fileCypherString.toString());
+        } else {
+            List<String> cypherChunks = new ArrayList<>();
+
+            for (int i = 0; i < cypherText.length(); i += 16) {
+                int limit = Math.min(i + 16, cypherText.length());
+
+                String chunk = cypherText.substring(i, limit);
+                cypherChunks.add(chunk);
+            }
+
+            StringBuilder sb1 = new StringBuilder();
+
+            for (String s : cypherChunks) {
+                sb1.append(AESEncrypt(s, key));
+            }
+
+            cypherTextOutput.setText(sb1.toString());
         }
-
-        List<String> cypherChunks = new ArrayList<>();
-
-        for (int i = 0; i < cypherText.length(); i += 16) {
-            int limit = Math.min(i + 16, cypherText.length());
-
-            String chunk = cypherText.substring(i, limit);
-            cypherChunks.add(chunk);
-        }
-
-        StringBuilder sb1 = new StringBuilder();
-
-        for (String s : cypherChunks) {
-            sb1.append(AESEncrypt(s, key));
-        }
-
-        cypherTextOutput.setText(sb1.toString());
     }
 
     @FXML

@@ -261,6 +261,104 @@ public class AES {
         return java.util.Base64.getEncoder().encodeToString(encryptedBlock);
     }
 
+    public static String AESEncrypt(byte[] inputBytes, String keyInput) {
+        byte[] paddedInput = addPadding(inputBytes);
+        byte[][] State = fillStateMatrix(paddedInput);
+
+//        byte[] key_ = hexStringToByteArray(keyInput);
+        byte[] key_ = java.util.Base64.getDecoder().decode(keyInput);
+        byte[][] key;
+
+        switch(key_.length) {
+            case 16:
+                key = keySchedule128bit(key_);
+
+                State = AddRoundKey(State, key, 0);
+
+                for (int i = 1; i < 10; i++) {
+                    State = SubBytes(State);
+                    State = ShiftRows(State);
+                    State = MixColumns(State);
+                    State = AddRoundKey(State, key, i);
+                }
+
+                State = SubBytes(State);
+                State = ShiftRows(State);
+                State = AddRoundKey(State, key, 10);
+
+                break;
+
+            case 24:
+                key = keySchedule192bit(key_);
+
+                State = AddRoundKey(State, key, 0);
+
+                for (int i = 1; i < 12; i++) {
+                    State = SubBytes(State);
+                    State = ShiftRows(State);
+                    State = MixColumns(State);
+                    State = AddRoundKey(State, key, i);
+                }
+
+                State = SubBytes(State);
+                State = ShiftRows(State);
+                State = AddRoundKey(State, key, 12);
+
+                break;
+
+            case 32:
+                key = keySchedule256bit(key_);
+
+                State = AddRoundKey(State, key, 0);
+
+                for (int i = 1; i < 14; i++) {
+                    State = SubBytes(State);
+                    State = ShiftRows(State);
+                    State = MixColumns(State);
+                    State = AddRoundKey(State, key, i);
+                }
+
+                State = SubBytes(State);
+                State = ShiftRows(State);
+                State = AddRoundKey(State, key, 14);
+
+                break;
+            default:
+                key = keySchedule128bit(key_);
+
+                State = AddRoundKey(State, key, 0);
+
+                for (int i = 1; i < 10; i++) {
+                    State = SubBytes(State);
+                    State = ShiftRows(State);
+                    State = MixColumns(State);
+                    State = AddRoundKey(State, key, i);
+                }
+
+                State = SubBytes(State);
+                State = ShiftRows(State);
+                State = AddRoundKey(State, key, 10);
+
+                break;
+        }
+
+//        for (int col = 0; col < 4; col++) {
+//            for (int row = 0; row < 4; row++) {
+//                sb.append(String.format("%02X", State[row][col] & 0xFF));
+//            }
+//        }
+//        return sb.toString();
+
+        byte[] encryptedBlock = new byte[16];
+        int index = 0;
+        for (int col = 0; col < 4; col++) {
+            for (int row = 0; row < 4; row++) {
+                encryptedBlock[index++] = State[row][col];
+            }
+        }
+        return java.util.Base64.getEncoder().encodeToString(encryptedBlock);
+    }
+
     public static String AESDecrypt(String input, String keyInput) {
         StringBuilder sb = new StringBuilder();
 //        byte[] inputBytes = hexStringToByteArray(input);
