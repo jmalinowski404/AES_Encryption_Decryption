@@ -98,6 +98,16 @@ public class ViewController {
     protected void onCypherClick() throws IOException {
         String key = keyInput.getText();
 
+        if (key == null || key.trim().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Błąd walidacji");
+            alert.setHeaderText("Brak klucza");
+            alert.setContentText("Aby wykonać szyfrowanie lub deszyfrowanie, proszę wprowadzić klucz.");
+
+            alert.showAndWait();
+            return;
+        }
+
         byte[] key_ = java.util.Base64.getDecoder().decode(key);
         byte[][] keySchedule;
         int rounds;
@@ -169,6 +179,17 @@ public class ViewController {
         String decypherText = cypherTextOutput.getText();
 
         String key = keyInput.getText();
+
+        if (key == null || key.trim().isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Błąd walidacji");
+            alert.setHeaderText("Brak klucza");
+            alert.setContentText("Aby wykonać szyfrowanie lub deszyfrowanie, proszę wprowadzić klucz.");
+
+            alert.showAndWait();
+            return;
+        }
+
         byte[] key_ = java.util.Base64.getDecoder().decode(key);
         byte[][] keySchedule;
         int rounds;
